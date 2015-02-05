@@ -29,10 +29,10 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".MainActivity" >
+            android:parentActivityName="com.example.rahael.sunshine.app.MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.rahael.sunshine.app.MainActivity" />
+                android:value="MainActivity" />
         </activity>
     </application>
 
