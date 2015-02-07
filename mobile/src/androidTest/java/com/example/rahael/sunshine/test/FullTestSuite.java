@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.rahael.sunshine.app.androidTest;
+package com.example.rahael.sunshine.test;
 
 import android.test.suitebuilder.TestSuiteBuilder;
 
