@@ -21,10 +21,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.text.format.Time;
 import android.util.Log;
 
 import com.example.rahael.sunshine.app.data.WeatherContract;
-import com.example.rahael.sunshine.app.data.WeatherContract.LocationEntry;
 import com.example.rahael.sunshine.app.data.WeatherContract.WeatherEntry;
 
 import org.json.JSONArray;
@@ -37,17 +37,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Date;
 import java.util.Vector;
 
 public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
 
     private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
+
     private final Context mContext;
 
     public FetchWeatherTask(Context context) {
         mContext = context;
     }
+
+    private boolean DEBUG = true;
 
     /**
      * Helper method to handle insertion of a new location in the weather database.
@@ -58,31 +60,45 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
      * @param lon the longitude of the city
      * @return the row ID of the added location.
      */
-    private long addLocation(String locationSetting, String cityName, double lat, double lon) {
+    long addLocation(String locationSetting, String cityName, double lat, double lon) {
+        long locationId;
 
         // First, check if the location with this city name exists in the db
-        Cursor cursor = mContext.getContentResolver().query(
-                LocationEntry.CONTENT_URI,
-                new String[]{LocationEntry._ID},
-                LocationEntry.COLUMN_LOCATION_SETTING + " = ?",
+        Cursor locationCursor = mContext.getContentResolver().query(
+                WeatherContract.LocationEntry.CONTENT_URI,
+                new String[]{WeatherContract.LocationEntry._ID},
+                WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ?",
                 new String[]{locationSetting},
                 null);
 
-        if (cursor.moveToFirst()) {
-            int locationIdIndex = cursor.getColumnIndex(LocationEntry._ID);
-            return cursor.getLong(locationIdIndex);
+        if (locationCursor.moveToFirst()) {
+            int locationIdIndex = locationCursor.getColumnIndex(WeatherContract.LocationEntry._ID);
+            locationId = locationCursor.getLong(locationIdIndex);
         } else {
+            // Now that the content provider is set up, inserting rows of data is pretty simple.
+            // First create a ContentValues object to hold the data you want to insert.
             ContentValues locationValues = new ContentValues();
-            locationValues.put(LocationEntry.COLUMN_LOCATION_SETTING, locationSetting);
-            locationValues.put(LocationEntry.COLUMN_CITY_NAME, cityName);
-            locationValues.put(LocationEntry.COLUMN_COORD_LAT, lat);
-            locationValues.put(LocationEntry.COLUMN_COORD_LONG, lon);
 
-            Uri locationInsertUri = mContext.getContentResolver()
-                    .insert(LocationEntry.CONTENT_URI, locationValues);
+            // Then add the data, along with the corresponding name of the data type,
+            // so the content provider knows what kind of value is being inserted.
+            locationValues.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME, cityName);
+            locationValues.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING, locationSetting);
+            locationValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT, lat);
+            locationValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG, lon);
 
-            return ContentUris.parseId(locationInsertUri);
+            // Finally, insert location data into the database.
+            Uri insertedUri = mContext.getContentResolver().insert(
+                    WeatherContract.LocationEntry.CONTENT_URI,
+                    locationValues
+            );
+
+            // The resulting URI contains the ID for the row.  Extract the locationId from the Uri.
+            locationId = ContentUris.parseId(insertedUri);
         }
+
+        locationCursor.close();
+        // Wait, that worked?  Yes!
+        return locationId;
     }
 
     /**
@@ -92,9 +108,13 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
      * Fortunately parsing is easy:  constructor takes the JSON string and converts it
      * into an Object hierarchy for us.
      */
-    private void getWeatherDataFromJson(String forecastJsonStr, int numDays,
+    private void getWeatherDataFromJson(String forecastJsonStr,
                                         String locationSetting)
             throws JSONException {
+
+        // Now we have a String representing the complete forecast in JSON Format.
+        // Fortunately parsing is easy:  constructor takes the JSON string and converts it
+        // into an Object hierarchy for us.
 
         // These are the names of the JSON objects that need to be extracted.
 
@@ -102,13 +122,14 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
         final String OWM_CITY = "city";
         final String OWM_CITY_NAME = "name";
         final String OWM_COORD = "coord";
-        final String OWM_COORD_LAT = "lat";
-        final String OWM_COORD_LONG = "lon";
+
+        // Location coordinate
+        final String OWM_LATITUDE = "lat";
+        final String OWM_LONGITUDE = "lon";
 
         // Weather information.  Each day's forecast info is an element of the "list" array.
         final String OWM_LIST = "list";
 
-        final String OWM_DATETIME = "dt";
         final String OWM_PRESSURE = "pressure";
         final String OWM_HUMIDITY = "humidity";
         final String OWM_WINDSPEED = "speed";
@@ -123,84 +144,106 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
         final String OWM_DESCRIPTION = "main";
         final String OWM_WEATHER_ID = "id";
 
-        JSONObject forecastJson = new JSONObject(forecastJsonStr);
-        JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
+        try {
+            JSONObject forecastJson = new JSONObject(forecastJsonStr);
+            JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
 
-        JSONObject cityJson = forecastJson.getJSONObject(OWM_CITY);
-        String cityName = cityJson.getString(OWM_CITY_NAME);
-        JSONObject coordJSON = cityJson.getJSONObject(OWM_COORD);
-        double cityLatitude = coordJSON.getLong(OWM_COORD_LAT);
-        double cityLongitude = coordJSON.getLong(OWM_COORD_LONG);
+            JSONObject cityJson = forecastJson.getJSONObject(OWM_CITY);
+            String cityName = cityJson.getString(OWM_CITY_NAME);
 
-        Log.v(LOG_TAG, cityName + ", with coord: " + cityLatitude + " " + cityLongitude);
+            JSONObject cityCoord = cityJson.getJSONObject(OWM_COORD);
+            double cityLatitude = cityCoord.getDouble(OWM_LATITUDE);
+            double cityLongitude = cityCoord.getDouble(OWM_LONGITUDE);
 
-        // Insert the location into the database.
-        long locationID = addLocation(locationSetting, cityName, cityLatitude, cityLongitude);
+            long locationId = addLocation(locationSetting, cityName, cityLatitude, cityLongitude);
 
-        // Get and insert the new weather information into the database
-        Vector<ContentValues> cVVector = new Vector<ContentValues>(weatherArray.length());
+            // Insert the new weather information into the database
+            Vector<ContentValues> cVVector = new Vector<ContentValues>(weatherArray.length());
 
-        for(int i = 0; i < weatherArray.length(); i++) {
-            // These are the values that will be collected.
+            // OWM returns daily forecasts based upon the local time of the city that is being
+            // asked for, which means that we need to know the GMT offset to translate this data
+            // properly.
 
-            long dateTime;
-            double pressure;
-            int humidity;
-            double windSpeed;
-            double windDirection;
+            // Since this data is also sent in-order and the first day is always the
+            // current day, we're going to take advantage of that to get a nice
+            // normalized UTC date for all of our weather.
 
-            double high;
-            double low;
+            Time dayTime = new Time();
+            dayTime.setToNow();
 
-            String description;
-            int weatherId;
+            // we start at the day returned by local time. Otherwise this is a mess.
+            int julianStartDay = Time.getJulianDay(System.currentTimeMillis(), dayTime.gmtoff);
 
-            // Get the JSON object representing the day
-            JSONObject dayForecast = weatherArray.getJSONObject(i);
+            // now we work exclusively in UTC
+            dayTime = new Time();
 
-            // The date/time is returned as a long.  We need to convert that
-            // into something human-readable, since most people won't read "1400356800" as
-            // "this saturday".
-            dateTime = dayForecast.getLong(OWM_DATETIME);
+            for(int i = 0; i < weatherArray.length(); i++) {
+                // These are the values that will be collected.
+                long dateTime;
+                double pressure;
+                int humidity;
+                double windSpeed;
+                double windDirection;
 
-            pressure = dayForecast.getDouble(OWM_PRESSURE);
-            humidity = dayForecast.getInt(OWM_HUMIDITY);
-            windSpeed = dayForecast.getDouble(OWM_WINDSPEED);
-            windDirection = dayForecast.getDouble(OWM_WIND_DIRECTION);
+                double high;
+                double low;
 
-            // Description is in a child array called "weather", which is 1 element long.
-            // That element also contains a weather code.
-            JSONObject weatherObject =
-                    dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
-            description = weatherObject.getString(OWM_DESCRIPTION);
-            weatherId = weatherObject.getInt(OWM_WEATHER_ID);
+                String description;
+                int weatherId;
 
-            // Temperatures are in a child object called "temp".  Try not to name variables
-            // "temp" when working with temperature.  It confuses everybody.
-            JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
-            high = temperatureObject.getDouble(OWM_MAX);
-            low = temperatureObject.getDouble(OWM_MIN);
+                // Get the JSON object representing the day
+                JSONObject dayForecast = weatherArray.getJSONObject(i);
 
-            ContentValues weatherValues = new ContentValues();
+                // Cheating to convert this to UTC time, which is what we want anyhow
+                dateTime = dayTime.setJulianDay(julianStartDay+i);
 
-            weatherValues.put(WeatherEntry.COLUMN_LOC_KEY, locationID);
-            weatherValues.put(WeatherEntry.COLUMN_DATETEXT,
-                    WeatherContract.getDbDateString(new Date(dateTime * 1000L)));
-            weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, humidity);
-            weatherValues.put(WeatherEntry.COLUMN_PRESSURE, pressure);
-            weatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, windSpeed);
-            weatherValues.put(WeatherEntry.COLUMN_DEGREES, windDirection);
-            weatherValues.put(WeatherEntry.COLUMN_MAX_TEMP, high);
-            weatherValues.put(WeatherEntry.COLUMN_MIN_TEMP, low);
-            weatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, description);
-            weatherValues.put(WeatherEntry.COLUMN_WEATHER_ID, weatherId);
+                pressure = dayForecast.getDouble(OWM_PRESSURE);
+                humidity = dayForecast.getInt(OWM_HUMIDITY);
+                windSpeed = dayForecast.getDouble(OWM_WINDSPEED);
+                windDirection = dayForecast.getDouble(OWM_WIND_DIRECTION);
 
-            cVVector.add(weatherValues);
-        }
-        if (cVVector.size() > 0) {
-            ContentValues[] cvArray = new ContentValues[cVVector.size()];
-            cVVector.toArray(cvArray);
-            mContext.getContentResolver().bulkInsert(WeatherEntry.CONTENT_URI, cvArray);
+                // Description is in a child array called "weather", which is 1 element long.
+                // That element also contains a weather code.
+                JSONObject weatherObject =
+                        dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
+                description = weatherObject.getString(OWM_DESCRIPTION);
+                weatherId = weatherObject.getInt(OWM_WEATHER_ID);
+
+                // Temperatures are in a child object called "temp".  Try not to name variables
+                // "temp" when working with temperature.  It confuses everybody.
+                JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
+                high = temperatureObject.getDouble(OWM_MAX);
+                low = temperatureObject.getDouble(OWM_MIN);
+
+                ContentValues weatherValues = new ContentValues();
+
+                weatherValues.put(WeatherEntry.COLUMN_LOC_KEY, locationId);
+                weatherValues.put(WeatherEntry.COLUMN_DATE, dateTime);
+                weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, humidity);
+                weatherValues.put(WeatherEntry.COLUMN_PRESSURE, pressure);
+                weatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, windSpeed);
+                weatherValues.put(WeatherEntry.COLUMN_DEGREES, windDirection);
+                weatherValues.put(WeatherEntry.COLUMN_MAX_TEMP, high);
+                weatherValues.put(WeatherEntry.COLUMN_MIN_TEMP, low);
+                weatherValues.put(WeatherEntry.COLUMN_SHORT_DESC, description);
+                weatherValues.put(WeatherEntry.COLUMN_WEATHER_ID, weatherId);
+
+                cVVector.add(weatherValues);
+            }
+
+            int inserted = 0;
+            // add to database
+            if ( cVVector.size() > 0 ) {
+                ContentValues[] cvArray = new ContentValues[cVVector.size()];
+                cVVector.toArray(cvArray);
+                inserted = mContext.getContentResolver().bulkInsert(WeatherEntry.CONTENT_URI, cvArray);
+            }
+
+            Log.d(LOG_TAG, "FetchWeatherTask Complete. " + inserted + " Inserted");
+
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, e.getMessage(), e);
+            e.printStackTrace();
         }
     }
 
@@ -272,11 +315,14 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
                 return null;
             }
             forecastJsonStr = buffer.toString();
+            getWeatherDataFromJson(forecastJsonStr, locationQuery);
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
-            // If the code didn't successfully get the weather data, there's no point in attemping
+            // If the code didn't successfully get the weather data, there's no point in attempting
             // to parse it.
-            return null;
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, e.getMessage(), e);
+            e.printStackTrace();
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -289,14 +335,6 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
                 }
             }
         }
-
-        try {
-            getWeatherDataFromJson(forecastJsonStr, numDays, locationQuery);
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, e.getMessage(), e);
-            e.printStackTrace();
-        }
-        // This will only happen if there was an error getting or parsing the forecast.
         return null;
     }
 }

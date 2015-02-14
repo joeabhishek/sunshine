@@ -7,8 +7,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-import com.example.rahael.sunshine.app.data.WeatherContract;
-
 import java.text.DateFormat;
 import java.util.Date;
 
@@ -36,8 +34,8 @@ public class Utility {
         return String.format("%.0f", temp);
     }
 
-    static String formatDate(String dateString) {
-        Date date = WeatherContract.getDateFromDb(dateString);
+    static String formatDate(long dateInMillis) {
+        Date date = new Date(dateInMillis);
         return DateFormat.getDateInstance().format(date);
     }
 }
