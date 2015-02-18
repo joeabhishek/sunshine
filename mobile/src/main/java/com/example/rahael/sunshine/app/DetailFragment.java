@@ -38,7 +38,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     private static final String[] DETAIL_COLUMNS = {
             WeatherEntry.TABLE_NAME + "." + WeatherEntry._ID,
-            WeatherEntry.COLUMN_DATE,
+            WeatherEntry.COLUMN_DATETEXT,
             WeatherEntry.COLUMN_SHORT_DESC,
             WeatherEntry.COLUMN_MAX_TEMP,
             WeatherEntry.COLUMN_MIN_TEMP,
@@ -151,11 +151,11 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         if (data != null && data.moveToFirst()) {
             // Read weather condition ID from cursor
             int weatherId = data.getInt(COL_WEATHER_CONDITION_ID);
-            // Use placeholder Image
-            mIconView.setImageResource(R.drawable.ic_launcher);
+            // Set weather art
+            mIconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
 
             // Read date from cursor and update views for day of week and date
-            long date = data.getLong(COL_WEATHER_DATE);
+            String date = data.getString(data.getColumnIndex(WeatherEntry.COLUMN_DATETEXT));
             String friendlyDateText = Utility.getDayName(getActivity(), date);
             String dateText = Utility.getFormattedMonthDay(getActivity(), date);
             mFriendlyDateView.setText(friendlyDateText);
