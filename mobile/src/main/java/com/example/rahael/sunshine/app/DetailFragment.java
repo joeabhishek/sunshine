@@ -40,7 +40,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     private static final String[] DETAIL_COLUMNS = {
             WeatherEntry.TABLE_NAME + "." + WeatherEntry._ID,
-            WeatherEntry.COLUMN_DATETEXT,
+            WeatherEntry.COLUMN_DATE,
             WeatherEntry.COLUMN_SHORT_DESC,
             WeatherEntry.COLUMN_MAX_TEMP,
             WeatherEntry.COLUMN_MIN_TEMP,
@@ -123,7 +123,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         // replace the uri, since the location has changed
         Uri uri = mUri;
         if (null != uri) {
-            String date = WeatherContract.WeatherEntry.getDateFromUri(uri);
+            long date = WeatherContract.WeatherEntry.getDateFromUri(uri);
             Uri updatedUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(newLocation, date);
             mUri = updatedUri;
             getLoaderManager().restartLoader(DETAIL_LOADER, null, this);
@@ -171,7 +171,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             mIconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
 
             // Read date from cursor and update views for day of week and date
-            String date = data.getString(data.getColumnIndex(WeatherEntry.COLUMN_DATETEXT));
+            long date = data.getLong(data.getColumnIndex(WeatherEntry.COLUMN_DATE));
             String friendlyDateText = Utility.getDayName(getActivity(), date);
             String dateText = Utility.getFormattedMonthDay(getActivity(), date);
             mFriendlyDateView.setText(friendlyDateText);

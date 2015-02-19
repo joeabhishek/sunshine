@@ -218,7 +218,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
                 ContentValues weatherValues = new ContentValues();
 
                 weatherValues.put(WeatherEntry.COLUMN_LOC_KEY, locationId);
-                weatherValues.put(WeatherEntry.COLUMN_DATETEXT, dateTime);
+                weatherValues.put(WeatherEntry.COLUMN_DATE, dateTime);
                 weatherValues.put(WeatherEntry.COLUMN_HUMIDITY, humidity);
                 weatherValues.put(WeatherEntry.COLUMN_PRESSURE, pressure);
                 weatherValues.put(WeatherEntry.COLUMN_WIND_SPEED, windSpeed);

@@ -41,7 +41,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             // using the location set by the user, which is only in the Location table.
             // So the convenience is worth it.
             WeatherContract.WeatherEntry.TABLE_NAME + "." + WeatherContract.WeatherEntry._ID,
-            WeatherContract.WeatherEntry.COLUMN_DATETEXT,
+            WeatherContract.WeatherEntry.COLUMN_DATE,
             WeatherContract.WeatherEntry.COLUMN_SHORT_DESC,
             WeatherContract.WeatherEntry.COLUMN_MAX_TEMP,
             WeatherContract.WeatherEntry.COLUMN_MIN_TEMP,
@@ -128,7 +128,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                     String locationSetting = Utility.getPreferredLocation(getActivity());
                     ((Callback) getActivity())
                             .onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
-                                    locationSetting, cursor.getString(COL_WEATHER_DATE)
+                                    locationSetting, cursor.getLong(COL_WEATHER_DATE)
                             ));
                 }
                 mPosition = position;
@@ -189,11 +189,11 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         // dates after or including today.
 
         // Sort order:  Ascending, by date.
-        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATETEXT + " ASC";
+        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
 
         String locationSetting = Utility.getPreferredLocation(getActivity());
         Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(
-                locationSetting, String.valueOf(System.currentTimeMillis()));
+                locationSetting, System.currentTimeMillis());
 
         return new CursorLoader(getActivity(),
                 weatherForLocationUri,
