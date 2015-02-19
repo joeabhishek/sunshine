@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.text.format.Time;
 import android.util.Log;
 import android.widget.ArrayAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 
 import com.example.rahael.sunshine.app.data.WeatherContract;
 
@@ -313,6 +315,17 @@ public class SunshineService extends IntentService {
         locationCursor.close();
         // Wait, that worked?  Yes!
         return locationId;
+    }
+
+    public static class AlarmReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Intent sendIntent = new Intent(context, SunshineService.class);
+            sendIntent.putExtra(SunshineService.LOCATION_QUERY_EXTRA, intent.getStringExtra(SunshineService.LOCATION_QUERY_EXTRA));
+            context.startService(sendIntent);
+
+        }
     }
 
 }
