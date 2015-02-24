@@ -18,6 +18,7 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -317,9 +318,11 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String displayNotificationsKey = context.getString(R.string.pref_enable_notifications_key);
         String displayWearNotificationKey = "enable_wear_notifications";
+        String displayNotificationLight = "enable_notification_light";
         boolean displayNotifications = prefs.getBoolean(displayNotificationsKey,
                 Boolean.parseBoolean(context.getString(R.string.pref_enable_notifications_default)));
         boolean wearNotifications = prefs.getBoolean(displayWearNotificationKey, Boolean.parseBoolean("true"));
+        boolean notificationLight = prefs.getBoolean(displayNotificationLight, Boolean.parseBoolean("true"));
 
         if ( displayNotifications ) {
 
@@ -355,6 +358,9 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                             Utility.formatTemperature(context, high),
                             Utility.formatTemperature(context, low));
 
+                    // To get the default notification tone. This is used later to set the sound for notification
+                    Uri uriSound= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                    
                     // NotificationCompatBuilder is a very convenient way to build backward-compatible
                     // notifications.  Just throw in some data.
                     NotificationCompat.Builder mBuilder =
@@ -363,10 +369,18 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                                     .setSmallIcon(iconId)
                                     .setLargeIcon(largeIcon)
                                     .setContentTitle(title)
-                                    .setContentText(contentText);
+                                    .setContentText(contentText)
+                                    .setSound(uriSound);
 
-                    // Setting wear notifications
+                    // Setting for wear notifications
                     mBuilder.setLocalOnly(!wearNotifications);
+
+                    //Setting for notification Light
+                    if(notificationLight){
+                        mBuilder.setLights( -3355444, 100, 100);
+                    } else {
+                        mBuilder.setLights( -3355444, 0, 0);
+                    }
 
                     // Make something interesting happen when the user clicks on the notification.
                     // In this case, opening the app is sufficient.

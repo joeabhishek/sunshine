@@ -31,4 +31,11 @@
         android:summaryOn="@string/pref_enable_wear_notifications_true"
         android:defaultValue="@string/pref_enable_wear_notifications_default" />
 
+    <CheckBoxPreference
+        android:title="@string/pref_enable_notifications_light_label"
+        android:key="@string/pref_enable_notifications_light_key"
+        android:summaryOff="@string/pref_enable_notifications_light_false"
+        android:summaryOn="@string/pref_enable_notifications_light_true"
+        android:defaultValue="@string/pref_enable_notifications_light_default" />
+
 </PreferenceScreen>

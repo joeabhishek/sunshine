@@ -81,13 +81,21 @@
     <string name="pref_enable_notifications_false">Not Enabled</string>
     <string name="pref_enable_notifications_default" translatable="false">true</string>
 
-    <!-- Strings related to Notification Enabled preference -->
+    <!-- Strings related to Wear Notification Enabled preference -->
     <string name="pref_enable_wear_notifications_key" translatable="false">enable_wear_notifications</string>
     <string name="pref_enable_wear_notifications_label">Notifications on  Android Wear</string>
 
     <string name="pref_enable_wear_notifications_true">Enabled</string>
     <string name="pref_enable_wear_notifications_false">Not Enabled</string>
     <string name="pref_enable_wear_notifications_default" translatable="false">true</string>
+
+    <!-- Strings related to Notification Light Enabled preference -->
+    <string name="pref_enable_notifications_light_key" translatable="false">enable_notification_light</string>
+    <string name="pref_enable_notifications_light_label">Enable Notification Light</string>
+
+    <string name="pref_enable_notifications_light_true">Enabled</string>
+    <string name="pref_enable_notifications_light_false">Not Enabled</string>
+    <string name="pref_enable_notifications_light_default" translatable="false">true</string>
 
 
 </resources>

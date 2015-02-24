@@ -5,6 +5,12 @@
     <!-- This permission is necessary in order for Sunshine to perform network access. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- This permission is necessary for vibration. -->
+    <uses-permission android:name="aandroid.permission.VIBRATE" />
+
+    <uses-permission
+        android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
+
     <!-- Permissions required by the sync adapter -->
     <uses-permission
         android:name="android.permission.READ_SYNC_SETTINGS"/>
