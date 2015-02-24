@@ -312,21 +312,51 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         }
     }
 
+    private NotificationCompat.Builder setNotificationSettings(SharedPreferences prefs, NotificationCompat.Builder mBuilder){
+        String displayWearNotificationKey = "enable_wear_notifications";
+        String displayNotificationLight = "enable_notification_light";
+        String displayNotificationSound = "enable_notification_sound";
+        String displayNotificationVibrate = "enable_notification_vibration";
+
+        boolean wearNotifications = prefs.getBoolean(displayWearNotificationKey, Boolean.parseBoolean("true"));
+        boolean notificationLight = prefs.getBoolean(displayNotificationLight, Boolean.parseBoolean("true"));
+        boolean notificationSound = prefs.getBoolean(displayNotificationSound, Boolean.parseBoolean("true"));
+        boolean notificationVibrate = prefs.getBoolean(displayNotificationVibrate, Boolean.parseBoolean("true"));
+
+        // Setting for wear notifications
+        mBuilder.setLocalOnly(!wearNotifications);
+
+        // Setting for notification Light
+        if(notificationLight){
+            mBuilder.setLights( -3355444, 100, 100);
+        } else {
+            mBuilder.setLights( -3355444, 0, 0);
+        }
+
+        // Setting for notification sound
+        if(notificationSound) {
+            // To get the default notification tone. This is used later to set the sound for notification
+            Uri uriSound= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            mBuilder.setSound(uriSound);
+        }
+
+        // Setting for notification vibration
+        if(notificationVibrate) {
+            // Vibration pattern
+            long[] vibrate = { 0, 100, 100, 100, 100, 100, 100, 100 };
+            mBuilder.setVibrate(vibrate);
+        }
+
+        return mBuilder;
+
+    }
     private void notifyWeather() {
         Context context = getContext();
         //checking the last update and notify if it' the first of the day
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String displayNotificationsKey = context.getString(R.string.pref_enable_notifications_key);
-        String displayWearNotificationKey = "enable_wear_notifications";
-        String displayNotificationLight = "enable_notification_light";
-        String displayNotificationSound = "enable_notification_sound";
-        String displayNotificationVibrate = "enable_notification_vibration";
         boolean displayNotifications = prefs.getBoolean(displayNotificationsKey,
                 Boolean.parseBoolean(context.getString(R.string.pref_enable_notifications_default)));
-        boolean wearNotifications = prefs.getBoolean(displayWearNotificationKey, Boolean.parseBoolean("true"));
-        boolean notificationLight = prefs.getBoolean(displayNotificationLight, Boolean.parseBoolean("true"));
-        boolean notificationSound = prefs.getBoolean(displayNotificationSound, Boolean.parseBoolean("true"));
-        boolean notificationVibrate = prefs.getBoolean(displayNotificationVibrate, Boolean.parseBoolean("true"));
 
         if ( displayNotifications ) {
 
@@ -373,30 +403,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                                     .setContentTitle(title)
                                     .setContentText(contentText);
 
-                    // Setting for wear notifications
-                    mBuilder.setLocalOnly(!wearNotifications);
-
-                    // Setting for notification Light
-                    if(notificationLight){
-                        mBuilder.setLights( -3355444, 100, 100);
-                    } else {
-                        mBuilder.setLights( -3355444, 0, 0);
-                    }
-
-                    // Setting for notification sound
-                    if(notificationSound) {
-                        // To get the default notification tone. This is used later to set the sound for notification
-                        Uri uriSound= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                        mBuilder.setSound(uriSound);
-                    }
-
-                    // Setting for notification vibration
-                    if(notificationVibrate) {
-                        // Vibration pattern
-                        long[] vibrate = { 0, 100, 100, 100, 100, 100, 100, 100 };
-                        mBuilder.setVibrate(vibrate);
-                    }
-
+                    mBuilder = setNotificationSettings(prefs, mBuilder);
 
                     // Make something interesting happen when the user clicks on the notification.
                     // In this case, opening the app is sufficient.
