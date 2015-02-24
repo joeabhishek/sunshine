@@ -319,10 +319,12 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         String displayNotificationsKey = context.getString(R.string.pref_enable_notifications_key);
         String displayWearNotificationKey = "enable_wear_notifications";
         String displayNotificationLight = "enable_notification_light";
+        String displayNotificationSound = "enable_notification_sound";
         boolean displayNotifications = prefs.getBoolean(displayNotificationsKey,
                 Boolean.parseBoolean(context.getString(R.string.pref_enable_notifications_default)));
         boolean wearNotifications = prefs.getBoolean(displayWearNotificationKey, Boolean.parseBoolean("true"));
         boolean notificationLight = prefs.getBoolean(displayNotificationLight, Boolean.parseBoolean("true"));
+        boolean notificationSound = prefs.getBoolean(displayNotificationSound, Boolean.parseBoolean("true"));
 
         if ( displayNotifications ) {
 
@@ -358,9 +360,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                             Utility.formatTemperature(context, high),
                             Utility.formatTemperature(context, low));
 
-                    // To get the default notification tone. This is used later to set the sound for notification
-                    Uri uriSound= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                    
+
                     // NotificationCompatBuilder is a very convenient way to build backward-compatible
                     // notifications.  Just throw in some data.
                     NotificationCompat.Builder mBuilder =
@@ -369,8 +369,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                                     .setSmallIcon(iconId)
                                     .setLargeIcon(largeIcon)
                                     .setContentTitle(title)
-                                    .setContentText(contentText)
-                                    .setSound(uriSound);
+                                    .setContentText(contentText);
 
                     // Setting for wear notifications
                     mBuilder.setLocalOnly(!wearNotifications);
@@ -381,6 +380,14 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     } else {
                         mBuilder.setLights( -3355444, 0, 0);
                     }
+
+                    // Setting for notification sound
+                    if(notificationSound) {
+                        // To get the default notification tone. This is used later to set the sound for notification
+                        Uri uriSound= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                        mBuilder.setSound(uriSound);
+                    }
+
 
                     // Make something interesting happen when the user clicks on the notification.
                     // In this case, opening the app is sufficient.

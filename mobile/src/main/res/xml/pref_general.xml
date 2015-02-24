@@ -38,4 +38,11 @@
         android:summaryOn="@string/pref_enable_notifications_light_true"
         android:defaultValue="@string/pref_enable_notifications_light_default" />
 
+    <CheckBoxPreference
+        android:title="@string/pref_enable_notifications_sound_label"
+        android:key="@string/pref_enable_notifications_sound_key"
+        android:summaryOff="@string/pref_enable_notifications_sound_false"
+        android:summaryOn="@string/pref_enable_notifications_sound_true"
+        android:defaultValue="@string/pref_enable_notifications_sound_default" />
+
 </PreferenceScreen>
