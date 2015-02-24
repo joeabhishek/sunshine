@@ -320,11 +320,13 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         String displayWearNotificationKey = "enable_wear_notifications";
         String displayNotificationLight = "enable_notification_light";
         String displayNotificationSound = "enable_notification_sound";
+        String displayNotificationVibrate = "enable_notification_vibration";
         boolean displayNotifications = prefs.getBoolean(displayNotificationsKey,
                 Boolean.parseBoolean(context.getString(R.string.pref_enable_notifications_default)));
         boolean wearNotifications = prefs.getBoolean(displayWearNotificationKey, Boolean.parseBoolean("true"));
         boolean notificationLight = prefs.getBoolean(displayNotificationLight, Boolean.parseBoolean("true"));
         boolean notificationSound = prefs.getBoolean(displayNotificationSound, Boolean.parseBoolean("true"));
+        boolean notificationVibrate = prefs.getBoolean(displayNotificationVibrate, Boolean.parseBoolean("true"));
 
         if ( displayNotifications ) {
 
@@ -374,7 +376,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     // Setting for wear notifications
                     mBuilder.setLocalOnly(!wearNotifications);
 
-                    //Setting for notification Light
+                    // Setting for notification Light
                     if(notificationLight){
                         mBuilder.setLights( -3355444, 100, 100);
                     } else {
@@ -386,6 +388,13 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                         // To get the default notification tone. This is used later to set the sound for notification
                         Uri uriSound= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
                         mBuilder.setSound(uriSound);
+                    }
+
+                    // Setting for notification vibration
+                    if(notificationVibrate) {
+                        // Vibration pattern
+                        long[] vibrate = { 0, 100, 100, 100, 100, 100, 100, 100 };
+                        mBuilder.setVibrate(vibrate);
                     }
 
 

@@ -45,4 +45,11 @@
         android:summaryOn="@string/pref_enable_notifications_sound_true"
         android:defaultValue="@string/pref_enable_notifications_sound_default" />
 
+    <CheckBoxPreference
+        android:title="@string/pref_enable_notifications_vibrate_label"
+        android:key="@string/pref_enable_notifications_vibrate_key"
+        android:summaryOff="@string/pref_enable_notifications_vibrate_false"
+        android:summaryOn="@string/pref_enable_notifications_vibrate_true"
+        android:defaultValue="@string/pref_enable_notifications_vibrate_default" />
+
 </PreferenceScreen>
