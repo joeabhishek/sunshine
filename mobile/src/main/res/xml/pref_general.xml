@@ -3,61 +3,65 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <EditTextPreference
-        android:title="@string/pref_location_label"
-        android:key="@string/pref_location_key"
-        android:defaultValue="@string/pref_location_default"
-        android:inputType="text"
-        android:singleLine="true" />
+    <PreferenceCategory android:title="General Settings">
+        <EditTextPreference
+            android:title="@string/pref_location_label"
+            android:key="@string/pref_location_key"
+            android:defaultValue="@string/pref_location_default"
+            android:inputType="text"
+            android:singleLine="true" />
 
-    <ListPreference
-        android:title="@string/pref_units_label"
-        android:key="@string/pref_units_key"
-        android:defaultValue="@string/pref_units_metric"
-        android:entryValues="@array/pref_units_values"
-        android:entries="@array/pref_units_options" />
+        <ListPreference
+            android:title="@string/pref_units_label"
+            android:key="@string/pref_units_key"
+            android:defaultValue="@string/pref_units_metric"
+            android:entryValues="@array/pref_units_values"
+            android:entries="@array/pref_units_options" />
+    </PreferenceCategory>
 
-    <CheckBoxPreference
-        android:title="@string/pref_enable_notifications_label"
-        android:key="@string/pref_enable_notifications_key"
-        android:summaryOff="@string/pref_enable_notifications_false"
-        android:summaryOn="@string/pref_enable_notifications_true"
-        android:defaultValue="@string/pref_enable_notifications_default" />
+    <PreferenceCategory android:title="Notification Settings">
+        <CheckBoxPreference
+            android:title="@string/pref_enable_notifications_label"
+            android:key="@string/pref_enable_notifications_key"
+            android:summaryOff="@string/pref_enable_notifications_false"
+            android:summaryOn="@string/pref_enable_notifications_true"
+            android:defaultValue="@string/pref_enable_notifications_default" />
 
-    <CheckBoxPreference
-        android:title="@string/pref_enable_wear_notifications_label"
-        android:key="@string/pref_enable_wear_notifications_key"
-        android:summaryOff="@string/pref_enable_wear_notifications_false"
-        android:summaryOn="@string/pref_enable_wear_notifications_true"
-        android:defaultValue="@string/pref_enable_wear_notifications_default" />
+        <CheckBoxPreference
+            android:title="@string/pref_enable_wear_notifications_label"
+            android:key="@string/pref_enable_wear_notifications_key"
+            android:summaryOff="@string/pref_enable_wear_notifications_false"
+            android:summaryOn="@string/pref_enable_wear_notifications_true"
+            android:defaultValue="@string/pref_enable_wear_notifications_default" />
 
-    <CheckBoxPreference
-        android:title="@string/pref_enable_notifications_light_label"
-        android:key="@string/pref_enable_notifications_light_key"
-        android:summaryOff="@string/pref_enable_notifications_light_false"
-        android:summaryOn="@string/pref_enable_notifications_light_true"
-        android:defaultValue="@string/pref_enable_notifications_light_default" />
+        <CheckBoxPreference
+            android:title="@string/pref_enable_notifications_light_label"
+            android:key="@string/pref_enable_notifications_light_key"
+            android:summaryOff="@string/pref_enable_notifications_light_false"
+            android:summaryOn="@string/pref_enable_notifications_light_true"
+            android:defaultValue="@string/pref_enable_notifications_light_default" />
 
-    <CheckBoxPreference
-        android:title="@string/pref_enable_notifications_sound_label"
-        android:key="@string/pref_enable_notifications_sound_key"
-        android:summaryOff="@string/pref_enable_notifications_sound_false"
-        android:summaryOn="@string/pref_enable_notifications_sound_true"
-        android:defaultValue="@string/pref_enable_notifications_sound_default" />
+        <CheckBoxPreference
+            android:title="@string/pref_enable_notifications_sound_label"
+            android:key="@string/pref_enable_notifications_sound_key"
+            android:summaryOff="@string/pref_enable_notifications_sound_false"
+            android:summaryOn="@string/pref_enable_notifications_sound_true"
+            android:defaultValue="@string/pref_enable_notifications_sound_default" />
 
-    <CheckBoxPreference
-        android:title="@string/pref_enable_notifications_vibrate_label"
-        android:key="@string/pref_enable_notifications_vibrate_key"
-        android:summaryOff="@string/pref_enable_notifications_vibrate_false"
-        android:summaryOn="@string/pref_enable_notifications_vibrate_true"
-        android:defaultValue="@string/pref_enable_notifications_vibrate_default" />
+        <CheckBoxPreference
+            android:title="@string/pref_enable_notifications_vibrate_label"
+            android:key="@string/pref_enable_notifications_vibrate_key"
+            android:summaryOff="@string/pref_enable_notifications_vibrate_false"
+            android:summaryOn="@string/pref_enable_notifications_vibrate_true"
+            android:defaultValue="@string/pref_enable_notifications_vibrate_default" />
 
-    <ListPreference
-        android:key="@string/pref_notifications_priority_key"
-        android:title="@string/pref_notifications_priority_label"
-        android:summary="@string/pref_notifications_priority_summary"
-        android:entries="@array/listentries"
-        android:entryValues="@array/listvalues"
-        android:defaultValue="0"/>
+        <ListPreference
+            android:key="@string/pref_notifications_priority_key"
+            android:title="@string/pref_notifications_priority_label"
+            android:summary="@string/pref_notifications_priority_summary"
+            android:entries="@array/listentries"
+            android:entryValues="@array/listvalues"
+            android:defaultValue="0"/>
+    </PreferenceCategory>
 
 </PreferenceScreen>
