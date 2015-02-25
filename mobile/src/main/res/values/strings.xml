@@ -114,7 +114,10 @@
     <string name="pref_enable_notifications_vibrate_false">Not Enabled</string>
     <string name="pref_enable_notifications_vibrate_default" translatable="false">true</string>
 
-
-
+    <!-- Strings related to Notification Priority preference -->
+    <string name="pref_notifications_priority_key" translatable="false">notification_priority</string>
+    <string name="pref_notifications_priority_label">Notification Priority</string>
+    <string name="pref_notifications_priority_summary">Set priority of your weather notification</string>
+    <string name="pref_notifications_priority_default" translatable="false">0</string>
 
 </resources>

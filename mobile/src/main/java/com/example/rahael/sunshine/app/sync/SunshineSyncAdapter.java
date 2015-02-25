@@ -317,11 +317,13 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         String displayNotificationLight = "enable_notification_light";
         String displayNotificationSound = "enable_notification_sound";
         String displayNotificationVibrate = "enable_notification_vibration";
+        String displayPriority = "notification_priority";
 
         boolean wearNotifications = prefs.getBoolean(displayWearNotificationKey, Boolean.parseBoolean("true"));
         boolean notificationLight = prefs.getBoolean(displayNotificationLight, Boolean.parseBoolean("true"));
         boolean notificationSound = prefs.getBoolean(displayNotificationSound, Boolean.parseBoolean("true"));
         boolean notificationVibrate = prefs.getBoolean(displayNotificationVibrate, Boolean.parseBoolean("true"));
+        int notification_priority = Integer.parseInt(prefs.getString("notification_priority", "0"));
 
         // Setting for wear notifications
         mBuilder.setLocalOnly(!wearNotifications);
@@ -346,6 +348,9 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             long[] vibrate = { 0, 100, 100, 100, 100, 100, 100, 100 };
             mBuilder.setVibrate(vibrate);
         }
+
+        // Set the priority of the notification
+        mBuilder.setPriority(notification_priority);
 
         return mBuilder;
 

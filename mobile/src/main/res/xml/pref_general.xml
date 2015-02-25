@@ -52,4 +52,12 @@
         android:summaryOn="@string/pref_enable_notifications_vibrate_true"
         android:defaultValue="@string/pref_enable_notifications_vibrate_default" />
 
+    <ListPreference
+        android:key="@string/pref_notifications_priority_key"
+        android:title="@string/pref_notifications_priority_label"
+        android:summary="@string/pref_notifications_priority_summary"
+        android:entries="@array/listentries"
+        android:entryValues="@array/listvalues"
+        android:defaultValue="0"/>
+
 </PreferenceScreen>
