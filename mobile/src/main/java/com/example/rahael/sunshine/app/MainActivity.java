@@ -8,14 +8,23 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.example.rahael.sunshine.app.sync.SunshineSyncAdapter;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.Wearable;
 
-public class MainActivity extends ActionBarActivity implements ForecastFragment.Callback {
+public class MainActivity extends ActionBarActivity implements ForecastFragment.Callback, GoogleApiClient.ConnectionCallbacks {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
 
     private boolean mTwoPane;
     private String mLocation;
+
+    private static final String START_ACTIVITY = "/start_activity";
+    private static final String WEAR_MESSAGE_PATH = "/message";
+    private GoogleApiClient mApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +55,8 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
         forecastFragment.setUseTodayLayout(!mTwoPane);
 
         SunshineSyncAdapter.initializeSyncAdapter(this);
+        initGoogleApiClient();
+        sendMessage(WEAR_MESSAGE_PATH, "hello");
     }
 
     @Override
@@ -109,5 +120,42 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
                     .setData(contentUri);
             startActivity(intent);
         }
+    }
+
+    private void initGoogleApiClient() {
+        mApiClient = new GoogleApiClient.Builder( this )
+                .addApi( Wearable.API )
+                .build();
+
+        mApiClient.connect();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mApiClient.disconnect();
+    }
+
+    private void sendMessage( final String path, final String text ) {
+        new Thread( new Runnable() {
+            @Override
+            public void run() {
+                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes( mApiClient ).await();
+                for(Node node : nodes.getNodes()) {
+                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
+                            mApiClient, node.getId(), path, text.getBytes() ).await();
+                }
+            }
+        }).start();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        sendMessage(START_ACTIVITY, "");
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
     }
 }
