@@ -21,18 +21,18 @@
 
     <PreferenceCategory android:title="Notification Settings">
         <CheckBoxPreference
-            android:title="@string/pref_enable_notifications_label"
-            android:key="@string/pref_enable_notifications_key"
-            android:summaryOff="@string/pref_enable_notifications_false"
-            android:summaryOn="@string/pref_enable_notifications_true"
-            android:defaultValue="@string/pref_enable_notifications_default" />
+            android:title="@string/pref_enable_notifications_phone_label"
+            android:key="@string/pref_enable_notifications_phone_key"
+            android:summaryOff="@string/pref_enable_notifications_phone_false"
+            android:summaryOn="@string/pref_enable_notifications_phone_true"
+            android:defaultValue="@string/pref_enable_notifications_phone_default" />
 
         <CheckBoxPreference
-            android:title="@string/pref_enable_wear_notifications_label"
-            android:key="@string/pref_enable_wear_notifications_key"
-            android:summaryOff="@string/pref_enable_wear_notifications_false"
-            android:summaryOn="@string/pref_enable_wear_notifications_true"
-            android:defaultValue="@string/pref_enable_wear_notifications_default" />
+            android:title="@string/pref_enable_notifications_wear_label"
+            android:key="@string/pref_enable_notifications_wear_key"
+            android:summaryOff="@string/pref_enable_notifications_wear_false"
+            android:summaryOn="@string/pref_enable_notifications_wear_true"
+            android:defaultValue="@string/pref_enable_notifications_wear_default" />
 
         <CheckBoxPreference
             android:title="@string/pref_enable_notifications_light_label"

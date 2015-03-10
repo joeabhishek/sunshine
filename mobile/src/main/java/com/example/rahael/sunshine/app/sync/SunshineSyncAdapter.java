@@ -31,13 +31,17 @@ import android.util.Log;
 import com.example.rahael.sunshine.app.MainActivity;
 import com.example.rahael.sunshine.app.R;
 import com.example.rahael.sunshine.app.Utility;
+import com.example.rahael.sunshine.app.WearableCommunication;
 import com.example.rahael.sunshine.app.data.WeatherContract;
+import com.google.android.gms.wearable.Asset;
+import com.google.android.gms.wearable.DataMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -312,11 +316,11 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         }
     }
 
-    private NotificationCompat.Builder setNotificationSettings(SharedPreferences prefs, NotificationCompat.Builder mBuilder){
-        String displayWearNotificationKey = "enable_wear_notifications";
-        String displayNotificationLight = "enable_notification_light";
-        String displayNotificationSound = "enable_notification_sound";
-        String displayNotificationVibrate = "enable_notification_vibration";
+    private NotificationCompat.Builder setNotificationSettings(Context context,SharedPreferences prefs, NotificationCompat.Builder mBuilder){
+        String displayWearNotificationKey = context.getString(R.string.pref_enable_notifications_wear_key);
+        String displayNotificationLight = context.getString(R.string.pref_enable_notifications_light_key);
+        String displayNotificationSound = context.getString(R.string.pref_enable_notifications_sound_key);
+        String displayNotificationVibrate = context.getString(R.string.pref_enable_notifications_vibrate_key);
         String displayPriority = "notification_priority";
 
         boolean wearNotifications = prefs.getBoolean(displayWearNotificationKey, Boolean.parseBoolean("true"));
@@ -359,11 +363,14 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         Context context = getContext();
         //checking the last update and notify if it' the first of the day
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String displayNotificationsKey = context.getString(R.string.pref_enable_notifications_key);
-        boolean displayNotifications = prefs.getBoolean(displayNotificationsKey,
-                Boolean.parseBoolean(context.getString(R.string.pref_enable_notifications_default)));
+        String displayNotificationsPhoneKey = context.getString(R.string.pref_enable_notifications_phone_key);
+        boolean displayNotificationsPhone = prefs.getBoolean(displayNotificationsPhoneKey,
+                Boolean.parseBoolean(context.getString(R.string.pref_enable_notifications_phone_default)));
+        String displayNotificationsWearKey = context.getString(R.string.pref_enable_notifications_wear_key);
+        boolean displayNotificationsWear = prefs.getBoolean(displayNotificationsWearKey,
+                Boolean.parseBoolean(context.getString(R.string.pref_enable_notifications_wear_default)));
 
-        if ( displayNotifications ) {
+        if ( displayNotificationsPhone || displayNotificationsWear ) {
 
             String lastNotificationKey = context.getString(R.string.pref_last_notification);
             long lastSync = prefs.getLong(lastNotificationKey, 0);
@@ -386,6 +393,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                     String desc = cursor.getString(INDEX_SHORT_DESC);
 
                     int iconId = Utility.getIconResourceForWeatherCondition(weatherId);
+                    String iconName = Utility.getIconResourceStringForWeatherCondition(weatherId);
                     Resources resources = context.getResources();
                     Bitmap largeIcon = BitmapFactory.decodeResource(resources,
                             Utility.getArtResourceForWeatherCondition(weatherId));
@@ -397,49 +405,73 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                             Utility.formatTemperature(context, high),
                             Utility.formatTemperature(context, low));
 
+                    if (displayNotificationsPhone) {
+                        // NotificationCompatBuilder is a very convenient way to build backward-compatible
+                        // notifications.  Just throw in some data.
+                        NotificationCompat.Builder mBuilder =
+                                new NotificationCompat.Builder(getContext())
+                                        .setColor(resources.getColor(R.color.sunshine_light_blue))
+                                        .setSmallIcon(iconId)
+                                        .setLargeIcon(largeIcon)
+                                        .setContentTitle(title)
+                                        .setContentText(contentText);
 
-                    // NotificationCompatBuilder is a very convenient way to build backward-compatible
-                    // notifications.  Just throw in some data.
-                    NotificationCompat.Builder mBuilder =
-                            new NotificationCompat.Builder(getContext())
-                                    .setColor(resources.getColor(R.color.sunshine_light_blue))
-                                    .setSmallIcon(iconId)
-                                    .setLargeIcon(largeIcon)
-                                    .setContentTitle(title)
-                                    .setContentText(contentText);
+                        // Setting all the notification preferences
+                        mBuilder = setNotificationSettings(context, prefs, mBuilder);
 
-                    mBuilder = setNotificationSettings(prefs, mBuilder);
+                        // Make something interesting happen when the user clicks on the notification.
+                        // In this case, opening the app is sufficient.
+                        Intent resultIntent = new Intent(context, MainActivity.class);
 
-                    // Make something interesting happen when the user clicks on the notification.
-                    // In this case, opening the app is sufficient.
-                    Intent resultIntent = new Intent(context, MainActivity.class);
+                        // The stack builder object will contain an artificial back stack for the
+                        // started Activity.
+                        // This ensures that navigating backward from the Activity leads out of
+                        // your application to the Home screen.
+                        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+                        stackBuilder.addNextIntent(resultIntent);
+                        PendingIntent resultPendingIntent =
+                                stackBuilder.getPendingIntent(
+                                        0,
+                                        PendingIntent.FLAG_UPDATE_CURRENT
+                                );
+                        mBuilder.setContentIntent(resultPendingIntent);
 
-                    // The stack builder object will contain an artificial back stack for the
-                    // started Activity.
-                    // This ensures that navigating backward from the Activity leads out of
-                    // your application to the Home screen.
-                    TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-                    stackBuilder.addNextIntent(resultIntent);
-                    PendingIntent resultPendingIntent =
-                            stackBuilder.getPendingIntent(
-                                    0,
-                                    PendingIntent.FLAG_UPDATE_CURRENT
-                            );
-                    mBuilder.setContentIntent(resultPendingIntent);
+                        NotificationManager mNotificationManager =
+                                (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                        // WEATHER_NOTIFICATION_ID allows you to update the notification later on.
+                        mNotificationManager.notify(WEATHER_NOTIFICATION_ID, mBuilder.build());
+                    }
 
-                    NotificationManager mNotificationManager =
-                            (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
-                    // WEATHER_NOTIFICATION_ID allows you to update the notification later on.
-                    mNotificationManager.notify(WEATHER_NOTIFICATION_ID, mBuilder.build());
+                    if (displayNotificationsWear && !displayNotificationsPhone) {
+                        DataMap dataMap = new DataMap();
+                        dataMap.putInt("color", resources.getColor(R.color.sunshine_light_blue));
+                        dataMap.putString("title", title);
+                        dataMap.putString("content", contentText);
+                        dataMap.putString("back", "270");
+                        dataMap.putString("icon", iconName);
 
+                        Bitmap bitmap = BitmapFactory.decodeResource(getContext().getResources(), iconId);
+                        Asset smallIconAsset = createAssetFromBitmap(bitmap);
+                        dataMap.putAsset("smallIcon", smallIconAsset);
+                        Asset largeIconAsset = createAssetFromBitmap(largeIcon);
+                        dataMap.putAsset("largeIcon", largeIconAsset);
+                        WearableCommunication.increaseCounter(dataMap);
+                    }
                     //refreshing last sync
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putLong(lastNotificationKey, System.currentTimeMillis());
                     editor.commit();
+
                 }
                 cursor.close();
             }
         }
+    }
+
+    private static Asset createAssetFromBitmap(Bitmap bitmap) {
+        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteStream);
+        return Asset.createFromBytes(byteStream.toByteArray());
     }
 
     /**

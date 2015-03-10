@@ -9,12 +9,24 @@ import android.view.MenuItem;
 
 import com.example.rahael.sunshine.app.sync.SunshineSyncAdapter;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
-public class MainActivity extends ActionBarActivity implements ForecastFragment.Callback, GoogleApiClient.ConnectionCallbacks {
+public class MainActivity extends ActionBarActivity implements
+        ForecastFragment.Callback,
+        DataApi.DataListener,
+        GoogleApiClient.ConnectionCallbacks{
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
@@ -24,7 +36,10 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
 
     private static final String START_ACTIVITY = "/start_activity";
     private static final String WEAR_MESSAGE_PATH = "/message";
-    private GoogleApiClient mApiClient;
+    public static GoogleApiClient mApiClient;
+
+    private static int count = 0;
+    private static final String COUNT_KEY = "com.example.key.count";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +71,6 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
 
         SunshineSyncAdapter.initializeSyncAdapter(this);
         initGoogleApiClient();
-        sendMessage(WEAR_MESSAGE_PATH, "hello");
     }
 
     @Override
@@ -78,7 +92,6 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -98,6 +111,7 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
             }
             mLocation = location;
         }
+        mApiClient.connect();
     }
 
     @Override
@@ -125,6 +139,7 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
     private void initGoogleApiClient() {
         mApiClient = new GoogleApiClient.Builder( this )
                 .addApi( Wearable.API )
+                .addConnectionCallbacks(this)
                 .build();
 
         mApiClient.connect();
@@ -133,25 +148,39 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Wearable.DataApi.removeListener(mApiClient, this);
         mApiClient.disconnect();
     }
 
-    private void sendMessage( final String path, final String text ) {
-        new Thread( new Runnable() {
-            @Override
-            public void run() {
-                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes( mApiClient ).await();
-                for(Node node : nodes.getNodes()) {
-                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
-                            mApiClient, node.getId(), path, text.getBytes() ).await();
-                }
-            }
-        }).start();
-    }
 
     @Override
     public void onConnected(Bundle bundle) {
-        sendMessage(START_ACTIVITY, "");
+        Wearable.DataApi.addListener(mApiClient, this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Wearable.DataApi.removeListener(mApiClient, this);
+        mApiClient.disconnect();
+    }
+
+    public void onDataChanged(DataEventBuffer dataEvents) {
+        for (DataEvent event : dataEvents) {
+            if (event.getType() == DataEvent.TYPE_CHANGED) {
+                // DataItem changed
+                DataItem item = event.getDataItem();
+                if (item.getUri().getPath().compareTo("/count") == 0) {
+                    NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes( mApiClient ).await();
+                    for(Node node : nodes.getNodes()) {
+                        MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
+                                mApiClient, node.getId(), WEAR_MESSAGE_PATH, "Hello".getBytes() ).await();
+                    }
+                }
+            } else if (event.getType() == DataEvent.TYPE_DELETED) {
+                // DataItem deleted
+            }
+        }
     }
 
     @Override
