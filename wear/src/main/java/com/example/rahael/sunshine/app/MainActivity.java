@@ -165,6 +165,8 @@ public class MainActivity extends Activity implements
                 int iconId = getResources().getIdentifier(iconName, "drawable", getPackageName());
                 Asset largeIconAsset = notification_properties.getAsset("largeIcon");
                 Bitmap largeIcon = loadBitmapFromAsset(largeIconAsset);
+                long[] vibrate_pattern = notification_properties.getLongArray("vibrate");
+                int priority = notification_properties.getInt("priority");
                 if (item.getUri().getPath().compareTo("/count") == 0) {
                            Notification notify = new NotificationCompat.Builder(this)
                                     .setContentTitle(notification_properties.getString("title"))
@@ -172,6 +174,8 @@ public class MainActivity extends Activity implements
                                     .setColor(notification_properties.getInt("color"))
                                     .setSmallIcon(iconId)
                                     .setLargeIcon(largeIcon)
+                                    .setVibrate(vibrate_pattern)
+                                    .setPriority(priority)
                                     .build();
                            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
                            notificationManager.notify(WEATHER_NOTIFICATION_ID, notify);

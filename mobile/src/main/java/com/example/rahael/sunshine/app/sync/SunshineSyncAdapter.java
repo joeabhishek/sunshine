@@ -316,8 +316,10 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         }
     }
 
+    //Set notification preferences for Phone and Wear together
     private NotificationCompat.Builder setNotificationSettings(Context context,SharedPreferences prefs, NotificationCompat.Builder mBuilder){
         String displayWearNotificationKey = context.getString(R.string.pref_enable_notifications_wear_key);
+        String displayPhoneNotificationKey = context.getString(R.string.pref_enable_notifications_phone_key);
         String displayNotificationLight = context.getString(R.string.pref_enable_notifications_light_key);
         String displayNotificationSound = context.getString(R.string.pref_enable_notifications_sound_key);
         String displayNotificationVibrate = context.getString(R.string.pref_enable_notifications_vibrate_key);
@@ -358,6 +360,27 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
         return mBuilder;
 
+    }
+
+    //Set Notification preferences for Wear Only
+    private DataMap setNotificationSettingsForWearOnly(Context context,SharedPreferences prefs, DataMap dataMap){
+        String displayNotificationVibrate = context.getString(R.string.pref_enable_notifications_vibrate_key);
+        String displayPriority = "notification_priority";
+
+        boolean notificationVibrate = prefs.getBoolean(displayNotificationVibrate, Boolean.parseBoolean("true"));
+        int notification_priority = Integer.parseInt(prefs.getString("notification_priority", "0"));
+
+        // Setting for notification vibration
+        if(notificationVibrate) {
+            // Vibration pattern
+            long[] vibrate = { 0, 100, 100, 100, 100, 100, 100, 100 };
+            dataMap.putLongArray("vibrate", vibrate);
+        }
+
+        // Set the priority of the notification
+        dataMap.putInt("priority", notification_priority );
+
+        return dataMap;
     }
     private void notifyWeather() {
         Context context = getContext();
@@ -455,6 +478,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                         dataMap.putAsset("smallIcon", smallIconAsset);
                         Asset largeIconAsset = createAssetFromBitmap(largeIcon);
                         dataMap.putAsset("largeIcon", largeIconAsset);
+                        dataMap = setNotificationSettingsForWearOnly(context, prefs, dataMap);
                         WearableCommunication.increaseCounter(dataMap);
                     }
                     //refreshing last sync
