@@ -80,6 +80,15 @@
                 android:resource="@xml/syncadapter" />
         </service>
 
+        <receiver
+            android:name="com.example.rahael.sunshine.app.AlarmReceiver"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="com.example.rahael.sunshine.app.SettingsActivity" >
+                </action>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

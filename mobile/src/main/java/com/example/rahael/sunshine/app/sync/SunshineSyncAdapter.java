@@ -56,21 +56,6 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final int SYNC_INTERVAL = 60 * 180;
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL/3;
     private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24;
-    private static final int WEATHER_NOTIFICATION_ID = 3004;
-
-
-    private static final String[] NOTIFY_WEATHER_PROJECTION = new String[] {
-            WeatherContract.WeatherEntry.COLUMN_WEATHER_ID,
-            WeatherContract.WeatherEntry.COLUMN_MAX_TEMP,
-            WeatherContract.WeatherEntry.COLUMN_MIN_TEMP,
-            WeatherContract.WeatherEntry.COLUMN_SHORT_DESC
-    };
-
-    // these indices must match the projection
-    private static final int INDEX_WEATHER_ID = 0;
-    private static final int INDEX_MAX_TEMP = 1;
-    private static final int INDEX_MIN_TEMP = 2;
-    private static final int INDEX_SHORT_DESC = 3;
 
     public SunshineSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
@@ -305,7 +290,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                         WeatherContract.WeatherEntry.COLUMN_DATE + " <= ?",
                         new String[] {Long.toString(dayTime.setJulianDay(julianStartDay-1))});
 
-                notifyWeather();
+                Utility.notifyWeather(getContext());
             }
 
             Log.d(LOG_TAG, "Sync Complete. " + cVVector.size() + " Inserted");
@@ -316,187 +301,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         }
     }
 
-    //Set notification preferences for Phone and Wear together
-    private NotificationCompat.Builder setNotificationSettings(Context context,SharedPreferences prefs, NotificationCompat.Builder mBuilder){
-        String displayWearNotificationKey = context.getString(R.string.pref_enable_notifications_wear_key);
-        String displayPhoneNotificationKey = context.getString(R.string.pref_enable_notifications_phone_key);
-        String displayNotificationLight = context.getString(R.string.pref_enable_notifications_light_key);
-        String displayNotificationSound = context.getString(R.string.pref_enable_notifications_sound_key);
-        String displayNotificationVibrate = context.getString(R.string.pref_enable_notifications_vibrate_key);
-        String displayPriority = "notification_priority";
 
-        boolean wearNotifications = prefs.getBoolean(displayWearNotificationKey, Boolean.parseBoolean("true"));
-        boolean notificationLight = prefs.getBoolean(displayNotificationLight, Boolean.parseBoolean("true"));
-        boolean notificationSound = prefs.getBoolean(displayNotificationSound, Boolean.parseBoolean("true"));
-        boolean notificationVibrate = prefs.getBoolean(displayNotificationVibrate, Boolean.parseBoolean("true"));
-        int notification_priority = Integer.parseInt(prefs.getString("notification_priority", "0"));
-
-        // Setting for wear notifications
-        mBuilder.setLocalOnly(!wearNotifications);
-
-        // Setting for notification Light
-        if(notificationLight){
-            mBuilder.setLights( -3355444, 100, 100);
-        } else {
-            mBuilder.setLights( -3355444, 0, 0);
-        }
-
-        // Setting for notification sound
-        if(notificationSound) {
-            // To get the default notification tone. This is used later to set the sound for notification
-            Uri uriSound= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-            mBuilder.setSound(uriSound);
-        }
-
-        // Setting for notification vibration
-        if(notificationVibrate) {
-            // Vibration pattern
-            long[] vibrate = { 0, 100, 100, 100, 100, 100, 100, 100 };
-            mBuilder.setVibrate(vibrate);
-        }
-
-        // Set the priority of the notification
-        mBuilder.setPriority(notification_priority);
-
-        return mBuilder;
-
-    }
-
-    //Set Notification preferences for Wear Only
-    private DataMap setNotificationSettingsForWearOnly(Context context,SharedPreferences prefs, DataMap dataMap){
-        String displayNotificationVibrate = context.getString(R.string.pref_enable_notifications_vibrate_key);
-        String displayPriority = "notification_priority";
-
-        boolean notificationVibrate = prefs.getBoolean(displayNotificationVibrate, Boolean.parseBoolean("true"));
-        int notification_priority = Integer.parseInt(prefs.getString("notification_priority", "0"));
-
-        // Setting for notification vibration
-        if(notificationVibrate) {
-            // Vibration pattern
-            long[] vibrate = { 0, 100, 100, 100, 100, 100, 100, 100 };
-            dataMap.putLongArray("vibrate", vibrate);
-        }
-
-        // Set the priority of the notification
-        dataMap.putInt("priority", notification_priority );
-
-        return dataMap;
-    }
-    private void notifyWeather() {
-        Context context = getContext();
-        //checking the last update and notify if it' the first of the day
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String displayNotificationsPhoneKey = context.getString(R.string.pref_enable_notifications_phone_key);
-        boolean displayNotificationsPhone = prefs.getBoolean(displayNotificationsPhoneKey,
-                Boolean.parseBoolean(context.getString(R.string.pref_enable_notifications_phone_default)));
-        String displayNotificationsWearKey = context.getString(R.string.pref_enable_notifications_wear_key);
-        boolean displayNotificationsWear = prefs.getBoolean(displayNotificationsWearKey,
-                Boolean.parseBoolean(context.getString(R.string.pref_enable_notifications_wear_default)));
-
-        if ( displayNotificationsPhone || displayNotificationsWear ) {
-
-            String lastNotificationKey = context.getString(R.string.pref_last_notification);
-            long lastSync = prefs.getLong(lastNotificationKey, 0);
-
-            // System.currentTimeMillis() - lastSync >= DAY_IN_MILLIS
-            // passing true for testing
-            if (true) {
-                // Last sync was more than 1 day ago, let's send a notification with the weather.
-                String locationQuery = Utility.getPreferredLocation(context);
-
-                Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationQuery, System.currentTimeMillis());
-
-                // we'll query our contentProvider, as always
-                Cursor cursor = context.getContentResolver().query(weatherUri, NOTIFY_WEATHER_PROJECTION, null, null, null);
-
-                if (cursor.moveToFirst()) {
-                    int weatherId = cursor.getInt(INDEX_WEATHER_ID);
-                    double high = cursor.getDouble(INDEX_MAX_TEMP);
-                    double low = cursor.getDouble(INDEX_MIN_TEMP);
-                    String desc = cursor.getString(INDEX_SHORT_DESC);
-
-                    int iconId = Utility.getIconResourceForWeatherCondition(weatherId);
-                    String iconName = Utility.getIconResourceStringForWeatherCondition(weatherId);
-                    Resources resources = context.getResources();
-                    Bitmap largeIcon = BitmapFactory.decodeResource(resources,
-                            Utility.getArtResourceForWeatherCondition(weatherId));
-                    String title = context.getString(R.string.app_name);
-
-                    // Define the text of the forecast.
-                    String contentText = String.format(context.getString(R.string.format_notification),
-                            desc,
-                            Utility.formatTemperature(context, high),
-                            Utility.formatTemperature(context, low));
-
-                    if (displayNotificationsPhone) {
-                        // NotificationCompatBuilder is a very convenient way to build backward-compatible
-                        // notifications.  Just throw in some data.
-                        NotificationCompat.Builder mBuilder =
-                                new NotificationCompat.Builder(getContext())
-                                        .setColor(resources.getColor(R.color.sunshine_light_blue))
-                                        .setSmallIcon(iconId)
-                                        .setLargeIcon(largeIcon)
-                                        .setContentTitle(title)
-                                        .setContentText(contentText);
-
-                        // Setting all the notification preferences
-                        mBuilder = setNotificationSettings(context, prefs, mBuilder);
-
-                        // Make something interesting happen when the user clicks on the notification.
-                        // In this case, opening the app is sufficient.
-                        Intent resultIntent = new Intent(context, MainActivity.class);
-
-                        // The stack builder object will contain an artificial back stack for the
-                        // started Activity.
-                        // This ensures that navigating backward from the Activity leads out of
-                        // your application to the Home screen.
-                        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-                        stackBuilder.addNextIntent(resultIntent);
-                        PendingIntent resultPendingIntent =
-                                stackBuilder.getPendingIntent(
-                                        0,
-                                        PendingIntent.FLAG_UPDATE_CURRENT
-                                );
-                        mBuilder.setContentIntent(resultPendingIntent);
-
-                        NotificationManager mNotificationManager =
-                                (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
-                        // WEATHER_NOTIFICATION_ID allows you to update the notification later on.
-                        mNotificationManager.notify(WEATHER_NOTIFICATION_ID, mBuilder.build());
-                    }
-
-                    if (displayNotificationsWear && !displayNotificationsPhone) {
-                        DataMap dataMap = new DataMap();
-                        dataMap.putInt("color", resources.getColor(R.color.sunshine_light_blue));
-                        dataMap.putString("title", title);
-                        dataMap.putString("content", contentText);
-                        dataMap.putString("back", "270");
-                        dataMap.putString("icon", iconName);
-
-                        Bitmap bitmap = BitmapFactory.decodeResource(getContext().getResources(), iconId);
-                        Asset smallIconAsset = createAssetFromBitmap(bitmap);
-                        dataMap.putAsset("smallIcon", smallIconAsset);
-                        Asset largeIconAsset = createAssetFromBitmap(largeIcon);
-                        dataMap.putAsset("largeIcon", largeIconAsset);
-                        dataMap = setNotificationSettingsForWearOnly(context, prefs, dataMap);
-                        WearableCommunication.increaseCounter(dataMap);
-                    }
-                    //refreshing last sync
-                    SharedPreferences.Editor editor = prefs.edit();
-                    editor.putLong(lastNotificationKey, System.currentTimeMillis());
-                    editor.commit();
-
-                }
-                cursor.close();
-            }
-        }
-    }
-
-    private static Asset createAssetFromBitmap(Bitmap bitmap) {
-        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteStream);
-        return Asset.createFromBytes(byteStream.toByteArray());
-    }
 
     /**
      * Helper method to handle insertion of a new location in the weather database.

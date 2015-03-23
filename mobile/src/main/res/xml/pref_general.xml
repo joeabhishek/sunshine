@@ -62,6 +62,20 @@
             android:entries="@array/listentries"
             android:entryValues="@array/listvalues"
             android:defaultValue="0"/>
+
+        <CheckBoxPreference
+            android:title="@string/pref_enable_notifications_time_preference_label"
+            android:key="@string/pref_enable_notifications_time_preference_key"
+            android:summaryOff="@string/pref_enable_notifications_time_preference_false"
+            android:summaryOn="@string/pref_enable_notifications_time_preference_true"
+            android:defaultValue="@string/pref_enable_notifications_time_preference_default" />
+
+        <com.example.rahael.sunshine.app.TimePreference
+            android:key= "@string/pref_notifications_time_preference_key"
+            android:title="@string/pref_notifications_time_preference_label"
+            android:summary="@string/pref_notifications_time_preference_summary"
+            android:defaultValue="@string/pref_notifications_time_preference_default"/>
+
     </PreferenceCategory>
 
 </PreferenceScreen>

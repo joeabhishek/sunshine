@@ -120,4 +120,19 @@
     <string name="pref_notifications_priority_summary">Set priority of your weather notification</string>
     <string name="pref_notifications_priority_default" translatable="false">0</string>
 
+    <!-- Strings related to Enabling Notification Time preference -->
+    <string name="pref_enable_notifications_time_preference_key" translatable="false">time_preference_enable</string>
+    <string name="pref_enable_notifications_time_preference_label" translatable="false">Enable Timely Notifications</string>
+
+    <string name="pref_enable_notifications_time_preference_true">Enabled</string>
+    <string name="pref_enable_notifications_time_preference_false">Not Enabled</string>
+    <string name="pref_enable_notifications_time_preference_default" translatable="false">true</string>
+
+    <!-- Strings related to Setting Time Preference -->
+    <string name="pref_notifications_time_preference_key" translatable="false">time_preference</string>
+    <string name="pref_notifications_time_preference_label" translatable="false">Time Preference</string>
+    <string name="pref_notifications_time_preference_summary" translatable="false">Set the time at
+        which you want to receive your weather notifications</string>
+    <string name="pref_notifications_time_preference_default" translatable="false">00:00</string>
+
 </resources>
