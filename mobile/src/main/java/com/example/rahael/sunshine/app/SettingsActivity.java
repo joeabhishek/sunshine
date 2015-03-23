@@ -44,19 +44,6 @@ public class SettingsActivity extends PreferenceActivity
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_location_key)));
         bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_units_key)));
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        notificationTimePreferenceKey = this.getString(R.string.pref_enable_notifications_time_preference_key);
-        displayNotificationsOnTime = prefs.getBoolean(notificationTimePreferenceKey,
-                Boolean.parseBoolean(this.getString(R.string.pref_enable_notifications_time_preference_default)));
-
-
-        if(displayNotificationsOnTime) {
-            try {
-                setAlarmForNotification();
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     /**
@@ -78,6 +65,7 @@ public class SettingsActivity extends PreferenceActivity
 
     @Override
     public boolean onPreferenceChange(Preference preference, Object value) {
+
         String stringValue = value.toString();
 
         if (preference instanceof ListPreference) {
@@ -124,8 +112,24 @@ public class SettingsActivity extends PreferenceActivity
         Intent alarmIntent = new Intent(this, AlarmReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC, calendar.getTimeInMillis(), pendingIntent);
+        alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 10000, pendingIntent);
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        notificationTimePreferenceKey = this.getString(R.string.pref_enable_notifications_time_preference_key);
+        displayNotificationsOnTime = prefs.getBoolean(notificationTimePreferenceKey,
+                Boolean.parseBoolean(this.getString(R.string.pref_enable_notifications_time_preference_default)));
 
+
+        if(displayNotificationsOnTime) {
+            try {
+                setAlarmForNotification();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
