@@ -1,27 +1,27 @@
 package com.example.rahael.sunshine.app;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.example.rahael.sunshine.app.sync.SunshineSyncAdapter;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItem;
-import com.google.android.gms.wearable.DataMap;
-import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
-import com.google.android.gms.wearable.PutDataMapRequest;
-import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
+
+import java.util.List;
 
 public class MainActivity extends ActionBarActivity implements
         ForecastFragment.Callback,
@@ -43,6 +43,9 @@ public class MainActivity extends ActionBarActivity implements
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        Intent intnet = new Intent("com.hmkcode.android.USER_ACTION");
+        sendBroadcast(intnet);
         super.onCreate(savedInstanceState);
         mLocation = Utility.getPreferredLocation(this);
 
@@ -71,6 +74,18 @@ public class MainActivity extends ActionBarActivity implements
 
         SunshineSyncAdapter.initializeSyncAdapter(this);
         initGoogleApiClient();
+
+
+        // This is Google glass Bluetooth Connection
+        if (!myGlassRunning()){
+
+            try {
+                JoeMessageUtil.sendInfoRequest();
+            } catch (Exception e1) {
+
+                e1.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -81,7 +96,7 @@ public class MainActivity extends ActionBarActivity implements
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item)  {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -92,12 +107,21 @@ public class MainActivity extends ActionBarActivity implements
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
+        if(id == R.id.action_poke_glass) {
+            try {
+                JoeMessageUtil.sendText("Message Test", "Yo Glass!!");
+            } catch (Exception e) {
+                Log.d("Sending to Glass Failed", "Yest its true");
+                e.printStackTrace();
+            }
+        }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        myGlassRunning();
         String location = Utility.getPreferredLocation( this );
         // update the location in our second pane using the fragment manager
         if (location != null && !location.equals(mLocation)) {
@@ -185,6 +209,28 @@ public class MainActivity extends ActionBarActivity implements
 
     @Override
     public void onConnectionSuspended(int i) {
+
+    }
+
+    boolean myglassrunning = false;
+    public boolean myGlassRunning(){
+
+        ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        // am.killBackgroundProcesses("com.google.glass.companion");
+        List<ActivityManager.RunningServiceInfo> pids = am.getRunningServices(9999);
+        for (int i = 0; i < pids.size(); i++) {
+            ActivityManager.RunningServiceInfo info = pids.get(i);
+            //Log.d("JOE",info.service.getClassName());
+            if (info.service.getClassName().equals("com.google.glass.companion.service.CompanionService")){
+                Log.d("JOE", "MyGlass is running");
+                myglassrunning = true;
+                /*tv = (TextView) findViewById(R.id.textView2);
+                tv.setText("MyGlass is running. It blocks the Bluetooth channel needed to talk to glass.  In order to use this app please Force Stop or uninstall it.");*/
+                return true;
+            }
+        }
+
+        return false;
 
     }
 }

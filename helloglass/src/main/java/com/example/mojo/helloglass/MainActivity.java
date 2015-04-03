@@ -95,11 +95,7 @@ public class MainActivity extends Activity {
      */
     private View buildView() {
         CardBuilder card = new CardBuilder(this, CardBuilder.Layout.TEXT);
-        TimeLine
         card.setText(R.string.hello_world);
-        TimelineItem timelineItem = new TimelineItem();
-        timelineItem.setText("Hello world");
-        service.timeline().insert(timelineItem).execute();
         return card.getView();
     }
 

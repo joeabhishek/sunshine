@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/Sunshine.iml" filepath="$PROJECT_DIR$/Sunshine.iml" />
       <module fileurl="file://$PROJECT_DIR$/helloglass/helloglass.iml" filepath="$PROJECT_DIR$/helloglass/helloglass.iml" />
       <module fileurl="file://$PROJECT_DIR$/mobile/mobile.iml" filepath="$PROJECT_DIR$/mobile/mobile.iml" />
+      <module fileurl="file://$PROJECT_DIR$/protobuf-java-2.3.0/protobuf-java-2.3.0.iml" filepath="$PROJECT_DIR$/protobuf-java-2.3.0/protobuf-java-2.3.0.iml" />
       <module fileurl="file://$PROJECT_DIR$/tv/tv.iml" filepath="$PROJECT_DIR$/tv/tv.iml" />
       <module fileurl="file://$PROJECT_DIR$/wear/wear.iml" filepath="$PROJECT_DIR$/wear/wear.iml" />
     </modules>

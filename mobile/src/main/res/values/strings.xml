@@ -9,6 +9,7 @@
 
     <!-- Menu Label to fetch updated weather info from the server -->
     <string name="action_refresh" translatable="false">Refresh</string>
+    <string name="action_poke_glass" translatable="false">Poke Glass</string>
     <string name="title_activity_detail">Details</string>
     <string name="title_activity_settings">Settings</string>
 

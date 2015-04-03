@@ -1,1 +1,1 @@
-include ':mobile', ':tv', ':wear', ':helloglass'
+include ':mobile', ':tv', ':wear', ':helloglass', ':protobuf-java-2.3.0'
